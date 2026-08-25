@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escape Room — Segmentação & Posicionamento</title>
+<style>
+:root{--ink:#17324d;--muted:#66788a;--bg:#f5f8fb;--card:#fff;--accent:#ffb703;--accent2:#219ebc;--ok:#168a5b;--bad:#c44536}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#17324d,#219ebc);color:#fff;padding:28px 18px}
+.wrap{max-width:920px;margin:auto}.brand{display:flex;gap:14px;align-items:center}.icon{font-size:34px}
+h1{margin:0;font-size:clamp(25px,5vw,40px)} h2{margin-top:0} p{line-height:1.55}
+.card{background:var(--card);margin:22px 0;padding:24px;border-radius:18px;box-shadow:0 8px 28px #17324d18}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.badge{padding:8px 12px;border-radius:999px;background:#e9f6fa;font-weight:700}
+.progress{height:10px;background:#dce6ee;border-radius:99px;overflow:hidden;margin:15px 0}.bar{height:100%;width:0;background:var(--accent);transition:.3s}
+.options{display:grid;gap:11px;margin:18px 0}.opt{border:2px solid #dce6ee;background:#fff;padding:14px;border-radius:12px;text-align:left;cursor:pointer;font-size:16px;color:var(--ink)}.opt:hover{border-color:var(--accent2)}
+.opt.selected{border-color:var(--accent2);background:#eef9fb}.opt.correct{border-color:var(--ok);background:#eaf8f2}.opt.wrong{border-color:var(--bad);background:#fff0ee}
+button.main{border:0;background:var(--accent2);color:#fff;padding:13px 20px;border-radius:12px;font-weight:800;cursor:pointer;font-size:16px}button.main:disabled{opacity:.45;cursor:not-allowed}
+.feedback{padding:14px;border-radius:12px;margin-top:15px;display:none}.feedback.show{display:block}.attempt{color:var(--muted);font-size:14px}
+input[type=text],textarea{width:100%;padding:13px;border:2px solid #dce6ee;border-radius:12px;font:inherit}textarea{min-height:120px}
+.hidden{display:none}.score{font-size:48px;font-weight:900;color:var(--accent2)}.final-good{border-left:7px solid var(--ok)}.final-mid{border-left:7px solid var(--accent)}.final-low{border-left:7px solid var(--bad)}
+.small{color:var(--muted);font-size:14px}.marketing{font-size:24px;letter-spacing:4px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div class="brand"><div class="icon">🎯</div><div><div class="marketing">MARKETING LAB</div><h1>Escape Room: Mercado em Foco</h1></div></div>
+<p>Desvende segmentos, escolha mercados-alvo e construa posicionamentos para escapar do desafio.</p>
+</div></header>
+
+<main class="wrap">
+<section id="intro" class="card">
+<h2>🔎 Missão</h2>
+<p>Você assumiu a gerência de marketing de uma empresa que precisa tomar decisões melhores sobre consumidores. Cada etapa desbloqueada representa uma decisão estratégica.</p>
+<p><b>Como funciona:</b> acerte e avance. Cada questão vale pontos por resposta correta. Após 2 tentativas, o padrão de resposta aparece.</p>
+<button class="main" onclick="start()">Começar missão</button>
+</section>
+
+<section id="game" class="card hidden">
+<div class="top"><span class="badge" id="stage">Etapa 1</span><span class="badge">🏆 <span id="score">0</span> pontos</span></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div id="content"></div>
+<div id="feedback" class="feedback"></div>
+<button class="main" id="check" onclick="checkAnswer()">Responder e desbloquear</button>
+</section>
+
+<section id="final" class="card hidden"></section>
+</main>
+
+<script>
+const stages=[
+{title:"🚪 Porta 1 — Encontre os grupos",type:"mc",points:10,
+q:"Uma rede de cafeterias quer dividir seu mercado usando idade, sexo, tamanho da família e grau de instrução. Qual tipo de segmentação está sendo priorizado?",
+opts:["A) Geográfica","B) Demográfica","C) Psicográfica","D) Por benefícios"],ans:1,explain:"A segmentação demográfica usa características da população, como idade, sexo, tamanho da família e grau de instrução."},
+{title:"🗺️ Porta 2 — O mapa do mercado",type:"mc",points:10,
+q:"Uma marca de alimentos percebe que hábitos de consumo variam bastante entre bairros e municípios e decide adaptar sua atuação à localização e à densidade populacional. Qual segmentação é mais adequada?",
+opts:["A) Geográfica","B) Socioeconômica","C) Comportamental","D) Psicográfica"],ans:0,explain:"A segmentação geográfica considera localização e densidade populacional."},
+{title:"🧠 Porta 3 — O consumidor invisível",type:"tf",points:10,
+q:"Verdadeiro ou falso: segmentação psicográfica pode considerar estilo de vida, personalidade, atitudes, valores e autoconceito.",
+opts:["Verdadeiro","Falso"],ans:0,explain:"Verdadeiro. Esses são exemplos de características psicográficas apresentados no material."},
+{title:"💡 Porta 4 — O que o cliente realmente busca?",type:"mc",points:10,
+q:"Uma empresa de smartphones descobre que parte dos consumidores compra principalmente pela potência, outra parte pela modernidade e outra pelo preço. Qual critério de segmentação melhor representa essa descoberta?",
+opts:["A) Geográfica","B) Demográfica","C) Por benefícios","D) Por grau de utilização"],ans:2,explain:"A segmentação por benefícios procura entender o que o consumidor busca no produto ou serviço, como preço, potência e modernidade."},
+{title:"📊 Porta 5 — Decisão baseada em comportamento",type:"mc",points:10,
+q:"Um aplicativo identifica usuários que compram muito, medianamente ou pouco e cria ações diferentes para cada grupo. Qual lógica está sendo usada?",
+opts:["A) Grau de utilização","B) Etnia","C) Localização","D) Classe social"],ans:0,explain:"A segmentação por grau de utilização prioriza a frequência/intensidade de uso, distinguindo quem compra muito, medianamente ou pouco."},
+{title:"🧩 Porta 6 — Combine as pistas",type:"mc",points:15,
+q:"Uma marca deseja identificar consumidores de 18–25 anos, com renda média, que vivem em grandes centros e valorizam experiências e inovação. Qual estratégia metodológica melhor descreve essa decisão?",
+opts:["A) Um único critério demográfico","B) Segmentação multivariada","C) Marketing indiferenciado","D) Posicionamento por concorrência"],ans:1,explain:"A segmentação multivariada combina mais de um tipo de critério de segmentação."},
+{title:"🎯 Porta 7 — Escolha o alvo",type:"mc",points:15,
+q:"Depois de identificar diferentes grupos de consumidores, a empresa decide atender prioritariamente apenas um nicho muito específico. Qual direcionamento estratégico corresponde a essa escolha?",
+opts:["A) Diferenciação","B) Não diferenciação","C) Concentração","D) Micromarketing"],ans:2,explain:"A concentração, ou marketing concentrado/de nicho, direciona a atuação para um segmento específico."},
+{title:"📣 Porta 8 — O lugar da marca na mente",type:"mc",points:10,
+q:"Uma marca quer definir como deseja ser percebida e associada pelo público prioritário, além de orientar design, naming e propaganda. Qual conceito está em jogo?",
+opts:["A) Segmentação","B) Posicionamento de mercado","C) Grau de utilização","D) Pesquisa pós-compra"],ans:1,explain:"O posicionamento define as bases de como a marca quer ser percebida e associada pelos públicos escolhidos e orienta a comunicação."},
+];
+
+let i=0,score=0,attempt=0,selected=null;
+function start(){document.getElementById('intro').classList.add('hidden');document.getElementById('game').classList.remove('hidden');render();}
+function render(){
+ attempt=0;selected=null;
+ const s=stages[i]; document.getElementById('stage').textContent=`Etapa ${i+1} de ${stages.length}`;
+ document.getElementById('score').textContent=score;
+ document.getElementById('bar').style.width=((i)/stages.length*100)+"%";
+ let h=`<h2>${s.title}</h2><p><b>Desafio:</b> ${s.q}</p>`;
+ if(s.type==="essay") h+=`<textarea id="essay" placeholder="Escreva sua estratégia aqui..."></textarea>`;
+ else h+=`<div class="options">${s.opts.map((o,n)=>`<button class="opt" onclick="selectOpt(${n})">${o}</button>`).join("")}</div>`;
+ h+=`<div class="attempt">Tentativa: <span id="attempt">1</span> de 2</div>`;
+ document.getElementById('content').innerHTML=h;
+ document.getElementById('feedback').className="feedback";
+ document.getElementById('feedback').innerHTML="";
+ document.getElementById('check').textContent="Responder e desbloquear";
+}
+function selectOpt(n){selected=n;document.querySelectorAll('.opt').forEach((b,k)=>b.classList.toggle('selected',k===n));}
+function checkAnswer(){
+ const s=stages[i]; let ok=false;
+ if(s.type==="essay"){essay=document.getElementById("essay").value.trim(); ok=essay.length>40&&essayScore(essay);}
+ else ok=selected===s.ans;
+ const fb=document.getElementById('feedback');
+ if(ok){
+   score+=s.points; fb.className="feedback show";fb.style.background="#eaf8f2";fb.style.color="#176b4a";
+   fb.innerHTML=`<b>🔓 Correto!</b> +${s.points} pontos.<br>${s.explain}`;
+   setTimeout(()=>{i++; if(i<stages.length) render(); else finish();},1100);
+ }else{
+   attempt++;
+   if(attempt<2){
+     fb.className="feedback show";fb.style.background="#fff7df";fb.style.color="#725500";
+     fb.innerHTML=`<b>Quase!</b> Revise a situação e tente novamente. Você tem mais uma tentativa.`;
+     document.getElementById('attempt').textContent=2;
+   }else{
+     fb.className="feedback show";fb.style.background="#fff0ee";fb.style.color="#8d2f25";
+     fb.innerHTML=`<b>🗝️ Padrão de resposta:</b> ${s.explain}<br><br>Você pode avançar, mas esta etapa não soma pontos.`;
+     document.getElementById('check').textContent="Desbloquear próxima etapa";
+     document.getElementById('check').onclick=()=>{i++; if(i<stages.length){document.getElementById('check').onclick=checkAnswer;render()}else finish()};
+   }
+ }
+}
+function finish(){
+ document.getElementById('game').classList.add('hidden');document.getElementById('final').classList.remove('hidden');
+ const max=stages.reduce((a,s)=>a+s.points,0), pct=score/max*100;
+ let cls,msg;
+ if(pct>80){cls="final-good";msg="🎉 Parabéns! Você dominou a missão de segmentação e posicionamento."}
+ else if(pct>60){cls="final-mid";msg="👏 Você foi bem, mas pode melhorar. Revise os critérios de segmentação e o papel do posicionamento."}
+ else{cls="final-low";msg="💪 Vamos seguir tentando! Ainda podemos melhorar mais. Refaça a missão e observe as pistas de cada situação."}
+ document.getElementById('final').className=`card ${cls}`;
+ document.getElementById('final').innerHTML=`<h2>🏁 Missão concluída!</h2><div class="score">${score} / ${max}</div><p><b>${pct.toFixed(0)}%</b> da pontuação máxima</p><p>${msg}</p><hr><p class="small">A pontuação considera apenas etapas respondidas corretamente.</p><button class="main" onclick="location.reload()">Jogar novamente</button>`;
+}
+</script>
+</body>
+</html>
